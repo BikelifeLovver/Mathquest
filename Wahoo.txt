@@ -1,0 +1,36 @@
+(function(gifUrl) {
+    if (typeof globalUserData === 'undefined' || !globalUserData.id) {
+        console.error("エラー: フレームを切り替えてから実行してください");
+        return;
+    }
+
+    // 1. 保存用のHTML（画像タグ）を作成
+    // シンプルに、高さだけを指定して確実に表示させます
+    const nameAsGif = `<img src="${gifUrl}" height="40">`;
+
+    console.log("新しい名前のデータ:", nameAsGif);
+
+    // 2. サーバー(GAS)に保存命令を送る
+    fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "saveName",
+            studentId: globalUserData.id,
+            name: nameAsGif
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("%c成功！SEIKINさんを名前に設定しました。", "color: lime; font-weight: bold;");
+        
+        // メモリ上の名前を更新
+        globalUserData.name = nameAsGif;
+        
+        // メニュー画面の表示を更新
+        if (typeof showMenu === 'function') showMenu();
+        
+        console.log("反映されない場合は、一度ランキング画面を開き直してみてください。");
+    })
+    .catch(err => console.error("通信エラー:", err));
+
+})("https://media1.tenor.com/m/rjiIZoAumh4AAAAd/good-morning-seikin.gif");

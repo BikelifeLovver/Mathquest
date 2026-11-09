@@ -1,0 +1,29 @@
+// ランキング取得関数を一時的に改造して、中身をすべて表示させる
+showRanking = (function(original) {
+    return function() {
+        console.log("%c--- 隠しデータ・スキャナー起動 ---", "color: yellow; font-weight: bold;");
+        
+        // サーバーにデータをリクエスト
+        fetch(GAS_URL, {
+            method: "POST",
+            body: JSON.stringify({ action: "getRanking", studentId: globalUserData.id })
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && data.ranking) {
+                console.log("サーバーから届いた生のデータ（隠し項目含む）:");
+                console.table(data.ranking); // 表形式でコンソールに表示
+                
+                // IDらしき項目（id, studentIdなど）があるか自動チェック
+                data.ranking.forEach((u, i) => {
+                    let hiddenId = u.id || u.studentId || u.student_id || "不明";
+                    console.log(`[順位 ${i+1}] 名前: ${u.name} / 隠しID: ${hiddenId}`);
+                });
+            }
+            // 本来の表示処理も実行する
+            original();
+        });
+    };
+})(showRanking);
+
+console.log("完了。ランキングボタンを押すと、コンソールに隠しIDが表示されます。");

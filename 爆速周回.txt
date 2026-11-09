@@ -1,0 +1,76 @@
+(function() {
+    console.log("%c--- 爆速・演出カットモード：起動 ---", "color: white; background: purple; padding: 5px; font-weight: bold;");
+
+    // 1. 【3秒待機をカット】initBattleを魔改造
+    initBattle = (function(original) {
+        return function(operation) {
+            // 元の処理を呼ぶ
+            original(operation);
+            
+            // カウントダウン用のタイマーを力技で止める
+            for (let i = 1; i < 100; i++) window.clearInterval(i); 
+            
+            // オーバーレイを即座に消して戦闘開始
+            const overlay = document.getElementById('battle-overlay');
+            if (overlay) overlay.classList.remove('active');
+            
+            // 即座にメタルスライム化して問題を出す
+            triggerMetalSlime();
+            nextQuestion(); 
+            
+            // 自分の自動周回タイマーを再起動
+            startMyBot();
+        };
+    })(initBattle);
+
+    // 2. 【リザルト画面をカット】endBattleを魔改造
+    endBattle = (function(original) {
+        return function(isWin) {
+            if (isWin) {
+                // 報酬計算（元のソースコードから拝借）
+                const reward = rewardData[currentField][currentOperation] || { exp: 45, gold: 50 };
+                const getExp = reward.exp * battle.rewardMultiplier;
+                const getGold = reward.gold * battle.rewardMultiplier;
+
+                // データを即座に更新
+                globalUserData.gold += getGold;
+                globalUserData.exp += getExp;
+                calculateLevelAndStats(globalUserData);
+                
+                // 保存して即座にメニューに戻る（アニメーション待機ゼロ）
+                saveToGAS();
+                showMenu();
+                
+                // オーバーレイを強制非表示
+                const overlay = document.getElementById('battle-overlay');
+                if (overlay) overlay.classList.remove('active');
+                
+                console.log(`%c[速報] 勝利！金+${getGold} / EXP+${getExp}`, "color: yellow;");
+            } else {
+                // 負けた時は一応そのまま（または必要ならここもカット可能）
+                original(isWin);
+            }
+        };
+    })(endBattle);
+
+    // 3. 全自動解答 ＆ メニュー進行ループ
+    const startMyBot = () => {
+        if (window.botTimer) clearInterval(window.botTimer);
+        window.botTimer = setInterval(() => {
+            // バトル中なら即答
+            if (typeof battle !== 'undefined' && battle.isActive) {
+                checkAnswer(battle.currentAns);
+            }
+
+            // メニュー画面なら即次へ
+            const targets = ["数の計算", "加法", "スタート", "つぎへ", "OK", "決定", "最初から"];
+            document.querySelectorAll('button, .choice-btn, .quest-btn').forEach(btn => {
+                if (targets.includes(btn.innerText.trim()) && btn.offsetWidth > 0) {
+                    btn.click();
+                }
+            });
+        }, 300); // 0.3秒間隔（爆速）
+    };
+
+    startMyBot();
+})();

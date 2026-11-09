@@ -1,0 +1,42 @@
+(function() {
+    console.log("%c--- レベル計算・高速化パッチ適用 ---", "color: white; background: blue; font-weight: bold;");
+
+    // 1. 必要経験値の計算を「ループ」から「数学の公式」に変更
+    // 公式: 50 * L * (L - 1)
+    window.getRequiredExp = function(level) {
+        if (level <= 1) return 0;
+        return 50 * level * (level - 1);
+    };
+
+    // 2. レベル算出を「whileループ」から「二次方程式の解の公式」に変更
+    // これにより、どんなに経験値が多くても一瞬でレベルが出ます
+    window.calculateLevelAndStats = function(user) {
+        // 解の公式を用いて EXP から Level を逆算
+        let lvl = Math.floor(0.5 + Math.sqrt(0.25 + user.exp / 50));
+        user.level = lvl;
+
+        // HPボーナスの計算も高速化 (ループを排除)
+        // 20レベルまでは加算、それ以降は1ずつ増える性質を利用
+        let hpBonus = 0;
+        if (lvl <= 20) {
+            for(let i=1; i<=lvl; i++) hpBonus += Math.max(1, 5 - Math.floor((i - 1) / 5));
+        } else {
+            hpBonus = 70 + (lvl - 20); // Lv20までの合計値70 + 以降1ずつ
+        }
+        user.maxHp = 10 + hpBonus;
+        user.nextExp = window.getRequiredExp(lvl + 1);
+    };
+
+    // 3. 制限時間の計算も高速化
+    window.calculateMaxTime = function(level) {
+        let timeBonus = 0;
+        if (level <= 25) {
+            for(let i=1; i<level; i++) timeBonus += Math.max(0.1, 0.5 - (Math.floor((i - 1) / 5) * 0.1));
+        } else {
+            timeBonus = 7.0 + (level - 25) * 0.1; // Lv25までの合計値7.0 + 以降0.1ずつ
+        }
+        return 5.0 + timeBonus;
+    };
+
+    console.log("パッチ完了。以降のレベル計算はすべて瞬時に終わります。");
+})();

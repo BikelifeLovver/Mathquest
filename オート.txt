@@ -1,0 +1,45 @@
+// ==UserScript==
+// @name         スウガクエスト・フレーム対応完全自動版
+// @namespace    http://tampermonkey.net/
+// @version      2.0
+// @description  フレーム（iframe）を自動検知して、どこでも自動解答
+// @author       You
+// @match        *://*/*
+// @grant        none
+// @run-at       document-end
+// ==/UserScript==
+
+(function() {
+    'use strict';
+
+    // 0.5秒ごとに実行
+    const autoPilot = () => {
+        // --- 1. 問題を解く（バトル中） ---
+        const problemArea = document.querySelector('.problem-area');
+        if (problemArea && problemArea.innerText.includes('=')) {
+            const lines = problemArea.innerText.split('\n');
+            let formulaLine = lines.find(line => line.includes('='));
+            if (formulaLine) {
+                let clean = formulaLine.replace(/[=?]/g, '').replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/\s+/g, '').trim();
+                try {
+                    const answer = eval(clean);
+                    document.querySelectorAll('.choice-btn').forEach(btn => {
+                        if (parseInt(btn.innerText) === answer) btn.click();
+                    });
+                } catch (e) {}
+            }
+        }
+
+        // --- 2. メニューや次へボタンを押す（移動中） ---
+        const targetLabels = ["数の計算", "四則混合", "スタート", "つぎへ", "OK", "決定", "最初から", "バトル開始", "もどる"];
+        // すべての要素をチェックして、テキストが一致するものをクリック
+        const elements = document.querySelectorAll('button, .choice-btn, div, span');
+        elements.forEach(el => {
+            if (el.innerText && targetLabels.includes(el.innerText.trim()) && el.offsetWidth > 0) {
+                el.click();
+            }
+        });
+    };
+
+    setInterval(autoPilot, 500);
+})();

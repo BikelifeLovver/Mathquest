@@ -1,0 +1,45 @@
+(function(targetExp, targetGold) {
+    if (typeof globalUserData === 'undefined' || !globalUserData.id) {
+        console.error("エラー: ゲームのデータが見つかりません。コンソールの 'top' を切り替えましたか？");
+        return;
+    }
+
+    console.log("現在のデータを書き換えています...");
+
+    // 1. 経験値とゴールドを好きな数字にする
+    globalUserData.exp = targetExp;
+    globalUserData.gold = targetGold;
+
+    // 2. 経験値に合わせてレベルを自動計算させる（ゲーム内の関数を利用）
+    calculateLevelAndStats(globalUserData);
+    
+    // HPも全快にしておく
+    globalUserData.hp = globalUserData.maxHp;
+
+    console.log(`書き換え完了: Lv.${globalUserData.level} / EXP.${globalUserData.exp} / Gold.${globalUserData.gold}`);
+
+    // 3. サーバー(GAS)に保存命令を送る
+    console.log("サーバーに保存リクエストを送信中...");
+    
+    fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "save",
+            studentId: globalUserData.id,
+            level: globalUserData.level,
+            hp: globalUserData.hp,
+            exp: globalUserData.exp,
+            gold: globalUserData.gold
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("%c保存成功！リロードしてもこのレベルから始まります。", "color: lime; font-weight: bold;");
+        // 画面の表示を更新する
+        if (typeof showMenu === 'function') showMenu();
+    })
+    .catch(err => {
+        console.error("保存に失敗しました。ネット接続やフレームを確認してください。", err);
+    });
+
+})(999999, 999999); // ←左が「経験値」、右が「ゴールド」の好きな数字

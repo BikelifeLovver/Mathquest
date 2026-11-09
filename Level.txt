@@ -1,0 +1,19 @@
+(function(targetExp) {
+    // 経験値をセット
+    globalUserData.exp = targetExp;
+
+    // 高速化された関数で計算（一瞬で終わる）
+    calculateLevelAndStats(globalUserData);
+    globalUserData.hp = globalUserData.maxHp;
+
+    // 画面表示を指数表記(1e+x)にする
+    if (document.getElementById('disp-level')) {
+        document.getElementById('disp-level').innerText = globalUserData.level.toExponential(2);
+    }
+
+    // 保存
+    saveToGAS();
+    showMenu();
+
+    console.log("改ざん成功:", globalUserData.level.toExponential(2));
+})(5e15); // ここに好きなEXPを入れてください

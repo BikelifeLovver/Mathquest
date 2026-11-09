@@ -1,0 +1,33 @@
+(function(longName) {
+    if (typeof globalUserData === 'undefined' || !globalUserData.id) {
+        console.error("エラー: フレームが正しくありません。");
+        return;
+    }
+
+    console.log("名前を限界突破して書き換え中...");
+
+    // 1. メモリ上の名前を書き換える
+    globalUserData.name = longName;
+
+    // 2. サーバー(GAS)に名前の変更命令を直接送る
+    fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({
+            action: "saveName", // ソースコード816行目にあるアクション
+            studentId: globalUserData.id,
+            name: longName
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        console.log("%c名前の限界突破に成功しました！", "color: lime; font-weight: bold;");
+        console.log("リロードして確認してください。");
+        
+        // 画面の表示を即時更新
+        if (typeof showMenu === 'function') showMenu();
+    })
+    .catch(err => {
+        console.error("エラーが発生しました。", err);
+    });
+
+})("ここに好きなだけ長い名前を入れる"); 
